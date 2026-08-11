@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-ink text-gray-100 antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  ::selection {
+    @apply bg-accent/30 text-white;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #232936;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2f3747;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-card border border-ink-line bg-ink-card shadow-card;
+  }
+  .card-hover {
+    @apply transition-colors duration-150 hover:border-ink-line/80 hover:bg-ink-raised;
+  }
+  .input {
+    @apply w-full rounded-lg border border-ink-line bg-ink-soft px-3 py-2 text-sm text-gray-100 placeholder-gray-500 outline-none transition-colors focus:border-accent/60 focus:ring-2 focus:ring-accent/20;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-ink hover:bg-accent-soft disabled:bg-accent/40;
+  }
+  .btn-ghost {
+    @apply btn border border-ink-line bg-transparent text-gray-300 hover:border-gray-600 hover:text-white;
+  }
+  .btn-danger {
+    @apply btn border border-danger/30 bg-danger/10 text-danger hover:bg-danger/20;
+  }
+  .tab-active {
+    @apply bg-ink-raised text-white;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-500;
+  }
+}
