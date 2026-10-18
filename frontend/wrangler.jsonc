@@ -17,6 +17,7 @@
       "persist": true
     }
   },
+  "previews": {},
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

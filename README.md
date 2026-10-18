@@ -117,6 +117,12 @@ Before a production deployment:
    Do not run plain `npx wrangler deploy` from the repository root: it will not
    use `frontend/wrangler.jsonc` and can autoconfigure the source directory as a
    static site, publishing unbuilt `.tsx` source instead of the app.
+   For production deployments, the Workers Builds **Deploy command** must be
+   `npx wrangler deploy`, not `npx wrangler preview`. The latter creates a
+   Wrangler Preview and requires the `previews` configuration block. This
+   project includes that block; configure a preview-safe `API_ORIGIN` for
+   Previews separately because Preview settings do not inherit production
+   settings.
 3. Set `API_ORIGIN` in the Worker's production environment to the API's HTTPS
    origin (scheme and host only; no path, query, or credentials). Add the same
    variable to preview environments if previews should reach an API.
