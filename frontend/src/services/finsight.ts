@@ -9,6 +9,7 @@ import type {
   Expense,
   ExpenseInput,
   ExpenseSummary,
+  FinancialGoal,
   FinancialHealth,
   Holding,
   HoldingInput,
@@ -65,6 +66,17 @@ export const portfolioApi = {
   update: (id: number, input: Partial<HoldingInput>) =>
     api<Holding>(`/api/portfolio/holdings/${id}`, { method: 'PUT', body: input }),
   remove: (id: number) => api<void>(`/api/portfolio/holdings/${id}`, { method: 'DELETE' }),
+};
+
+export const goalsApi = {
+  list: () => api<FinancialGoal[]>('/api/goals'),
+  create: (input: { name: string; target_amount: number; target_date?: string | null; notes?: string }) =>
+    api<FinancialGoal>('/api/goals', { method: 'POST', body: input }),
+  update: (id: number, input: Partial<{ name: string; target_amount: number; target_date: string | null; notes: string }>) =>
+    api<FinancialGoal>(`/api/goals/${id}`, { method: 'PUT', body: input }),
+  contribute: (id: number, amount: number) =>
+    api<FinancialGoal>(`/api/goals/${id}/contributions`, { method: 'POST', body: { amount } }),
+  remove: (id: number) => api<void>(`/api/goals/${id}`, { method: 'DELETE' }),
 };
 
 export const marketsApi = {

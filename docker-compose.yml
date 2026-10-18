@@ -39,6 +39,7 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: http://localhost:8000
+        VITE_SUPPORT_PAYMENT_URL: ${VITE_SUPPORT_PAYMENT_URL:-}
     container_name: finsight-frontend
     restart: unless-stopped
     depends_on:

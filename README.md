@@ -1,8 +1,8 @@
 # FinSight
 
 FinSight is a full-stack personal finance & investing assistant. Track holdings, log
-expenses, get a financial-health score, simulate investment scenarios, and chat with an
-AI copilot — plus an admin dashboard for platform overview and user management.
+expenses, set savings goals, get a financial-health score, simulate investment scenarios,
+and chat with an AI copilot — plus an admin dashboard for platform overview and user management.
 
 ## Stack
 
@@ -74,6 +74,55 @@ cd frontend
 npm run build
 ```
 
+## Cloudflare Workers frontend
+
+The React/Vite single-page app can be served from Cloudflare Workers Static
+Assets. The current FastAPI API and SQLAlchemy database are **not** part of this
+Worker deployment: host the API separately and configure its public HTTPS origin
+as `API_ORIGIN`. The Worker proxies same-origin `/api` requests to that fixed
+origin. Do not set this to localhost in production.
+
+### Local Cloudflare-runtime preview
+
+1. Start the backend locally using the SQLite instructions above.
+2. In `frontend`, copy `.dev.vars.example` to `.dev.vars` (PowerShell:
+   `Copy-Item .dev.vars.example .dev.vars`).
+3. Run `npm ci` once, then `npm run cf:dev` in `frontend`.
+4. Open the Wrangler URL shown in the terminal (usually
+   `http://localhost:8787`). This exercises the Worker proxy and SPA fallback
+   locally; it does not publish anything.
+
+### Git-connected deployment
+
+The Worker configuration is in `frontend/wrangler.jsonc`; the build command is
+`npm run build` and the asset directory is `frontend/dist`. Install Wrangler
+with the frontend dependencies (`npm ci`). Before a production deployment:
+
+1. Host the FastAPI API and its PostgreSQL database at a stable HTTPS origin.
+   The current API is not backed by Cloudflare D1; moving it to D1 requires a
+   deliberate database-layer migration.
+2. Connect the GitHub repository to Cloudflare Workers & Pages and configure
+   the root directory as `frontend`, `npm run build` as the build command, and
+   `npx wrangler deploy` as the deploy command.
+3. Set `API_ORIGIN` in the Worker's production environment to the API's HTTPS
+   origin (scheme and host only; no path, query, or credentials). Add the same
+   variable to preview environments if previews should reach an API.
+4. Confirm production secrets, `DEMO_MODE`, CORS, database backups, and API
+   health before publishing. Do not use the seeded demo credentials as
+   production credentials.
+
+For a direct CLI deployment, first authenticate Wrangler with `npx wrangler
+login`, configure `API_ORIGIN` in the Cloudflare dashboard, and only then run
+`npm run cf:deploy` from `frontend`. That command publishes the Worker; it is
+intentionally not part of CI.
+
+Static asset requests are free and unlimited under Workers Static Assets.
+Requests routed through the API proxy invoke a Worker. Cloudflare's current
+Workers Free plan includes 100,000 Worker requests/day; Workers Paid starts at
+USD $5/month. D1 is not used by this deployment. Review [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+and [Static Assets billing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)
+before enabling paid usage.
+
 ## Environment variables
 
 See [`.env.example`](.env.example) for every setting with comments. Key ones:
@@ -85,6 +134,12 @@ See [`.env.example`](.env.example) for every setting with comments. Key ones:
 | `OPENROUTER_API_KEY` | Enables the AI copilot. Empty → local fallback. |
 | `MARKET_DATA_PROVIDER` | `demo` or `finnhub`. |
 | `DEMO_MODE` | When true, market data is simulated and labeled as such. |
+| `VITE_SUPPORT_PAYMENT_URL` | Optional Stripe Payment Link (`https://buy.stripe.com/...`) for voluntary one-time or recurring support. Leave empty to hide the support option. |
+
+To accept voluntary support, create a Stripe Payment Link in the Stripe Dashboard and
+set `VITE_SUPPORT_PAYMENT_URL` in `.env` before building the frontend. The checkout is
+hosted by Stripe; FinSight does not process or store payment details. The link is
+optional and does not unlock paid features or guarantee contributions.
 
 ## Project layout
 
@@ -101,7 +156,7 @@ backend/
 frontend/
   src/
     components/   # UI kit, charts, layout
-    pages/        # auth, dashboard, portfolio, markets, expenses, health, AI, admin
+    pages/        # auth, dashboard, portfolio, markets, expenses, goals, health, AI, admin
     services/     # API client + type-safe wrappers
     hooks/        # useApi, useMutation, useAuth
     types/        # shared TypeScript types

@@ -3,6 +3,8 @@
 .env.local
 .env.*.local
 !.env.example
+frontend/.dev.vars*
+!frontend/.dev.vars.example
 
 # ---- Python / backend ----
 __pycache__/
@@ -24,6 +26,7 @@ dist/
 dist-ssr/
 *.local
 .vite/
+.wrangler/
 
 # ---- Editors / OS ----
 .vscode/

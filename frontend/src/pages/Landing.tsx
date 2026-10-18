@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Logo } from '../components/layout/Logo';
+import { SupportFinSight } from '../components/layout/SupportFinSight';
 import { useAuth } from '../contexts/AuthContext';
 
 const features = [
@@ -101,7 +102,10 @@ export default function Landing() {
           FinSight brings your portfolio, spending, health score and market data into one
           premium terminal — with an AI copilot that explains it all from your real numbers.
         </p>
-        <div className="mt-8 flex justify-center">{cta}</div>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          {cta}
+          <SupportFinSight />
+        </div>
 
         <div className="mx-auto mt-14 max-w-4xl overflow-hidden rounded-card border border-ink-line bg-ink-soft">
           <div className="flex items-center gap-1.5 border-b border-ink-line px-4 py-3">

@@ -11,6 +11,7 @@ const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Markets = lazy(() => import('./pages/Markets'));
 const StockDetail = lazy(() => import('./pages/StockDetail'));
 const Expenses = lazy(() => import('./pages/Expenses'));
+const Goals = lazy(() => import('./pages/Goals'));
 const FinancialHealth = lazy(() => import('./pages/FinancialHealth'));
 const Simulator = lazy(() => import('./pages/Simulator'));
 const AICopilot = lazy(() => import('./pages/AICopilot'));
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/markets" element={<Page><Markets /></Page>} />
         <Route path="/markets/:symbol" element={<Page><StockDetail /></Page>} />
         <Route path="/expenses" element={<Page><Expenses /></Page>} />
+        <Route path="/goals" element={<Page><Goals /></Page>} />
         <Route path="/financial-health" element={<Page><FinancialHealth /></Page>} />
         <Route path="/simulator" element={<Page><Simulator /></Page>} />
         <Route path="/ai-copilot" element={<Page><AICopilot /></Page>} />

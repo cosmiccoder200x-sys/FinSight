@@ -96,3 +96,35 @@ class WatchlistSymbolOut(BaseModel):
 
 class WatchlistAdd(BaseModel):
     symbol: str = Field(min_length=1, max_length=20)
+
+
+class FinancialGoalCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    target_amount: float = Field(gt=0, le=1_000_000_000_000)
+    target_date: dt.date | None = None
+    notes: str | None = Field(default="", max_length=500)
+
+
+class FinancialGoalUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    target_amount: float | None = Field(default=None, gt=0, le=1_000_000_000_000)
+    target_date: dt.date | None = None
+    notes: str | None = Field(default=None, max_length=500)
+
+
+class GoalContributionCreate(BaseModel):
+    amount: float = Field(gt=0, le=1_000_000_000_000)
+
+
+class FinancialGoalOut(BaseModel):
+    id: int
+    name: str
+    target_amount: float
+    target_date: dt.date | None
+    notes: str
+    saved_amount: float
+    remaining_amount: float
+    progress_pct: float
+    monthly_contribution: float | None
+
+    model_config = ConfigDict(from_attributes=True)

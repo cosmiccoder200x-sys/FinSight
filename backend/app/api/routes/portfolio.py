@@ -2,17 +2,23 @@
 
 from __future__ import annotations
 
+import datetime as dt
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models import Holding, Transaction, User, WatchlistItem
+from app.models import FinancialGoal, GoalContribution, Holding, Transaction, User, WatchlistItem
 from app.schemas import (
     HoldingCreate,
     HoldingOut,
     HoldingUpdate,
+    FinancialGoalCreate,
+    FinancialGoalOut,
+    FinancialGoalUpdate,
+    GoalContributionCreate,
     PortfolioAnalytics,
     PortfolioSummary,
     WatchlistAdd,
@@ -26,6 +32,115 @@ router = APIRouter(prefix="/api", tags=["portfolio"])
 
 def _market(db: Session) -> MarketDataService:
     return MarketDataService(db)
+
+
+def _goal_out(goal: FinancialGoal, db: Session) -> FinancialGoalOut:
+    saved = float(
+        db.scalar(
+            select(func.coalesce(func.sum(GoalContribution.amount), 0)).where(
+                GoalContribution.goal_id == goal.id
+            )
+        )
+        or 0
+    )
+    target = float(goal.target_amount)
+    remaining = max(0, target - saved)
+    monthly_contribution = None
+    if goal.target_date and goal.target_date >= dt.date.today() and remaining > 0:
+        days_left = (goal.target_date - dt.date.today()).days
+        months_left = max(1, (days_left + 29) // 30)
+        monthly_contribution = round(remaining / months_left, 2)
+    return FinancialGoalOut(
+        id=goal.id,
+        name=goal.name,
+        target_amount=target,
+        target_date=goal.target_date,
+        notes=goal.notes or "",
+        saved_amount=saved,
+        remaining_amount=remaining,
+        progress_pct=min(100, round(saved / target * 100, 2)),
+        monthly_contribution=monthly_contribution,
+    )
+
+
+def _get_goal(goal_id: int, user_id: int, db: Session) -> FinancialGoal:
+    goal = db.scalar(
+        select(FinancialGoal).where(FinancialGoal.id == goal_id, FinancialGoal.user_id == user_id)
+    )
+    if goal is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Financial goal not found")
+    return goal
+
+
+# ---------------------------------------------------------------------------
+# Financial goals
+# ---------------------------------------------------------------------------
+@router.get("/goals", response_model=list[FinancialGoalOut])
+def list_goals(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    goals = db.scalars(
+        select(FinancialGoal).where(FinancialGoal.user_id == user.id).order_by(FinancialGoal.created_at.desc())
+    ).all()
+    return [_goal_out(goal, db) for goal in goals]
+
+
+@router.post("/goals", response_model=FinancialGoalOut, status_code=status.HTTP_201_CREATED)
+def create_goal(
+    payload: FinancialGoalCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    goal = FinancialGoal(
+        user_id=user.id,
+        name=payload.name.strip(),
+        target_amount=payload.target_amount,
+        target_date=payload.target_date,
+        notes=payload.notes or "",
+    )
+    if not goal.name:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Goal name is required")
+    db.add(goal)
+    db.commit()
+    db.refresh(goal)
+    return _goal_out(goal, db)
+
+
+@router.put("/goals/{goal_id}", response_model=FinancialGoalOut)
+def update_goal(
+    goal_id: int,
+    payload: FinancialGoalUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    goal = _get_goal(goal_id, user.id, db)
+    updates = payload.model_dump(exclude_unset=True)
+    if "name" in updates:
+        updates["name"] = updates["name"].strip()
+        if not updates["name"]:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Goal name is required")
+    for key, value in updates.items():
+        setattr(goal, key, value)
+    db.commit()
+    db.refresh(goal)
+    return _goal_out(goal, db)
+
+
+@router.delete("/goals/{goal_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_goal(goal_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    goal = _get_goal(goal_id, user.id, db)
+    db.delete(goal)
+    db.commit()
+
+
+@router.post("/goals/{goal_id}/contributions", response_model=FinancialGoalOut, status_code=status.HTTP_201_CREATED)
+def contribute_to_goal(
+    goal_id: int,
+    payload: GoalContributionCreate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    goal = _get_goal(goal_id, user.id, db)
+    db.add(GoalContribution(goal_id=goal.id, amount=payload.amount, contributed_at=dt.date.today()))
+    db.commit()
+    db.refresh(goal)
+    return _goal_out(goal, db)
 
 
 # ---------------------------------------------------------------------------

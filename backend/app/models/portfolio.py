@@ -77,3 +77,20 @@ class FinancialGoal(Base, TimestampMixin):
     target_amount: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
     target_date: Mapped[dt.date | None] = mapped_column(Date, nullable=True)
     notes: Mapped[str] = mapped_column(Text, nullable=True, default="")
+
+    contributions: Mapped[list["GoalContribution"]] = relationship(
+        back_populates="goal", cascade="all, delete-orphan"
+    )
+
+
+class GoalContribution(Base, TimestampMixin):
+    __tablename__ = "goal_contributions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    goal_id: Mapped[int] = mapped_column(
+        ForeignKey("financial_goals.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    amount: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False)
+    contributed_at: Mapped[dt.date] = mapped_column(Date, nullable=False, default=dt.date.today)
+
+    goal: Mapped[FinancialGoal] = relationship(back_populates="contributions")

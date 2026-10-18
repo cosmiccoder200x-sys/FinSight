@@ -111,6 +111,18 @@ export interface WatchlistItem {
   symbol: string;
 }
 
+export interface FinancialGoal {
+  id: number;
+  name: string;
+  target_amount: number;
+  target_date: string | null;
+  notes: string;
+  saved_amount: number;
+  remaining_amount: number;
+  progress_pct: number;
+  monthly_contribution: number | null;
+}
+
 export interface Expense {
   id: number;
   amount: number;

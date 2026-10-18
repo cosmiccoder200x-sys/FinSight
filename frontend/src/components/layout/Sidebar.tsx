@@ -7,6 +7,7 @@ import {
   Home,
   LayoutDashboard,
   LogOut,
+  Target,
   Settings,
   ShieldCheck,
   TrendingUp,
@@ -17,6 +18,7 @@ import {
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Logo } from './Logo';
+import { SupportFinSight } from './SupportFinSight';
 
 interface NavItem {
   to: string;
@@ -30,6 +32,7 @@ const mainNav: NavItem[] = [
   { to: '/portfolio', label: 'Portfolio', icon: Wallet },
   { to: '/markets', label: 'Markets', icon: BarChart3 },
   { to: '/expenses', label: 'Expenses', icon: DollarSign },
+  { to: '/goals', label: 'Goals', icon: Target },
   { to: '/financial-health', label: 'Financial Health', icon: Gauge },
   { to: '/simulator', label: 'Simulator', icon: TrendingUp },
   { to: '/ai-copilot', label: 'AI Copilot', icon: Bot },
@@ -84,6 +87,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
       )}
 
       <div className="mt-auto space-y-0.5 border-t border-ink-line pt-3">
+        <SupportFinSight onNavigate={onNavigate} />
         <NavLink to="/settings" className={linkClass} onClick={onNavigate}>
           <Settings className="h-4 w-4" />
           Settings
