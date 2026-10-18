@@ -11,6 +11,7 @@ frontend and can proxy `/api` requests to a separately hosted FinSight API.
 
 - Frontend: `cd frontend; npm ci; npm run dev`
 - Frontend production build: `cd frontend; npm run build`
+- Wrangler 4 requires Node.js 22 or newer.
 - Backend dependencies: `cd backend; python -m pip install -r requirements.txt`
 - Backend local API: `cd backend; uvicorn app.main:app --reload --port 8000`
 - Backend tests: `cd backend; pytest -q`

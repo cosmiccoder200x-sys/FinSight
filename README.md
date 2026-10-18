@@ -96,6 +96,7 @@ origin. Do not set this to localhost in production.
 
 The Worker configuration is in `frontend/wrangler.jsonc`; its entry point is
 `frontend/src/worker.ts` and it serves the built `frontend/dist` directory.
+Use Node.js 22 or newer when running Wrangler 4.
 Before a production deployment:
 
 1. Host the FastAPI API and its PostgreSQL database at a stable HTTPS origin.
