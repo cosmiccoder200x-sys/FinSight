@@ -35,10 +35,15 @@ uvicorn app.main:app --reload --port 8000
 - The FastAPI API and its SQLAlchemy/PostgreSQL database are not deployed by
   this Worker configuration. Keep API hosting and data storage configured
   separately; do not point a production frontend at localhost.
-- Deploy the frontend from `frontend` with `npm run cf:deploy` after configuring
-  `API_ORIGIN` in the Cloudflare Worker environment. The command requires an
-  authenticated Wrangler session and deploys publicly; do not run it without
-  the owner's explicit production approval.
+- For Workers Builds with repository-root as the root directory, set the build
+  command empty and the deploy command to
+  `cd frontend && npm ci && npm run cf:deploy`. Alternatively set the root
+  directory to `frontend`, build command to `npm run build`, and deploy command
+  to `npx wrangler deploy`. Wrangler must run in `frontend`, where its
+  `wrangler.jsonc` config and built `dist` assets are located.
+- Deploying with `npm run cf:deploy` from `frontend` requires an authenticated
+  Wrangler session and publishes publicly; do not run it without the owner's
+  explicit production approval.
 - Cloudflare API tokens, JWT secrets, database credentials, and third-party API
   keys must be configured as platform secrets/environment settings, never
   committed to Git.
@@ -59,5 +64,6 @@ uvicorn app.main:app --reload --port 8000
 
 ## CI requirements
 
-Run the frontend production build and full backend pytest suite before submitting
-changes. GitHub Actions runs the same checks on pushes and pull requests.
+Run the frontend production build, Wrangler deploy dry-run, and full backend
+pytest suite before submitting changes. GitHub Actions runs these checks on
+pushes and pull requests.

@@ -94,16 +94,28 @@ origin. Do not set this to localhost in production.
 
 ### Git-connected deployment
 
-The Worker configuration is in `frontend/wrangler.jsonc`; the build command is
-`npm run build` and the asset directory is `frontend/dist`. Install Wrangler
-with the frontend dependencies (`npm ci`). Before a production deployment:
+The Worker configuration is in `frontend/wrangler.jsonc`; its entry point is
+`frontend/src/worker.ts` and it serves the built `frontend/dist` directory.
+Before a production deployment:
 
 1. Host the FastAPI API and its PostgreSQL database at a stable HTTPS origin.
    The current API is not backed by Cloudflare D1; moving it to D1 requires a
    deliberate database-layer migration.
-2. Connect the GitHub repository to Cloudflare Workers & Pages and configure
-   the root directory as `frontend`, `npm run build` as the build command, and
-   `npx wrangler deploy` as the deploy command.
+2. In the existing Worker, open **Settings → Builds** and use either of these
+   matching configurations:
+
+   - **Recommended monorepo setup:** set **Root directory** to `frontend`,
+     **Build command** to `npm run build`, and **Deploy command** to
+     `npx wrangler deploy`.
+   - **If Root directory must remain the repository root:** leave the build
+     command empty and set **Deploy command** to
+     `cd frontend && npm ci && npm run cf:deploy`. This command installs the
+     frontend dependencies, builds Vite's `dist`, and runs Wrangler from the
+     directory containing `wrangler.jsonc`.
+
+   Do not run plain `npx wrangler deploy` from the repository root: it will not
+   use `frontend/wrangler.jsonc` and can autoconfigure the source directory as a
+   static site, publishing unbuilt `.tsx` source instead of the app.
 3. Set `API_ORIGIN` in the Worker's production environment to the API's HTTPS
    origin (scheme and host only; no path, query, or credentials). Add the same
    variable to preview environments if previews should reach an API.
